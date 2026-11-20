@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tarjimon</title><meta name="theme-color" content="#6c8cff">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<!-- Kirish -->
+<section id="auth" class="auth hide">
+  <div class="card">
+    <h2 id="a-name">Tarjimon</h2>
+    <p class="mut">Telefon raqamingiz bilan kiring — profilingiz avtomatik ochiladi</p>
+    <div id="a-phone"><input id="phone" type="tel" placeholder="+998 90 123 45 67" autocomplete="tel"><button class="btn" id="send" style="width:100%">Kod yuborish</button></div>
+    <div id="a-code" class="hide"><input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="6 xonali kod"><button class="btn" id="verify" style="width:100%">Kirish</button><p class="mut" id="devhint"></p></div>
+    <div id="recaptcha"></div><p class="err" id="a-err"></p>
+  </div>
+  <p class="mut" id="a-owner"></p>
+</section>
+
+<!-- Ilova -->
+<div id="app" class="hide">
+  <header class="top"><h1 id="h-name">Tarjimon</h1><a id="admin-link" class="btn sec sm hide" href="/admin">Admin</a><span id="h-av"></span></header>
+  <main class="wrap">
+    <!-- Matn tarjimasi -->
+    <section data-tab="tr">
+      <div class="card">
+        <div class="row"><div class="grow"><select id="from"></select></div><button class="btn sec sm" id="swap" title="Almashtirish">⇄</button><div class="grow"><select id="to"></select></div></div>
+        <textarea id="src" placeholder="Matnni yozing yoki mikrofon tugmasini bosing…" style="margin-top:10px"></textarea>
+        <div class="row" style="margin-top:8px"><button class="btn" id="go">Tarjima qilish</button><button class="btn sec" id="mic">🎤 Gapirish</button><span class="mut" id="tr-q"></span></div>
+        <div class="out" id="res">Tarjima shu yerda ko'rinadi</div>
+        <div class="row" style="margin-top:8px"><button class="btn sec sm" id="speak">🔊 Eshitish</button><button class="btn sec sm" id="copy">📋 Nusxa</button></div>
+      </div>
+    </section>
+    <!-- Rasm -->
+    <section data-tab="img" class="hide">
+      <div class="card">
+        <h3>Rasmdagi matnni tarjima qilish</h3>
+        <input type="file" id="imgf" accept="image/png,image/jpeg,image/webp,image/gif" capture="environment" style="margin:10px 0">
+        <img id="imgp" style="max-width:100%;max-height:260px;border-radius:10px" class="hide">
+        <div class="row" style="margin-top:8px"><div class="grow"><select class="tolang" id="to-img"></select></div><button class="btn" id="imggo">Tarjima qilish</button></div>
+        <div class="out hide" id="imgres"></div>
+        <div class="row" style="margin-top:8px"><button class="btn sec sm hide" id="imgspeak">🔊 Eshitish</button></div>
+      </div>
+    </section>
+    <!-- Video -->
+    <section data-tab="vid" class="hide">
+      <div class="card">
+        <h3>Video / audiodagi so'zlarni matnga aylantirish</h3>
+        <p class="mut">Videodagi nutq matnga yoziladi va siz tanlagan tilga tarjima qilinadi (vaqt belgilari bilan, .srt yuklab olish mumkin).</p>
+        <input type="file" id="vidf" accept="video/*,audio/*" style="margin:10px 0">
+        <div class="row"><div class="grow"><select id="to-vid"></select></div><button class="btn" id="vidgo">Matnga aylantirish</button></div>
+        <p class="mut" id="vidst"></p>
+        <div id="vidres"></div>
+        <div class="row hide" id="vidact"><button class="btn sec sm" id="srt">⬇ .srt</button><button class="btn sec sm" id="vcopy">📋 Hammasini nusxalash</button></div>
+      </div>
+    </section>
+    <!-- Chat -->
+    <section data-tab="chat" class="hide">
+      <div class="card">
+        <div class="row"><div class="grow"><select id="room"><option value="general">🌍 Umumiy chat</option></select></div><div class="grow"><input type="text" id="usearch" placeholder="Foydalanuvchi qidirish (shaxsiy suhbat)…"></div></div>
+        <div id="ures" class="row" style="margin-top:6px"></div>
+        <div class="chat" style="margin-top:8px"><div class="msgs" id="msgs"></div>
+          <div class="row" style="margin-top:8px"><div class="grow"><input type="text" id="mtext" placeholder="Xabar…" maxlength="1000"></div><button class="btn" id="msend">Yuborish</button></div>
+        </div>
+      </div>
+    </section>
+    <!-- Profil -->
+    <section data-tab="me" class="hide">
+      <div class="card" id="prof"></div>
+      <div class="card"><h3>⭐ Oltin yulduzchalar</h3><p class="mut" id="starinfo"></p><div class="packs" id="packs" style="margin-top:10px"></div></div>
+      <div class="card"><h3>👑 Premium</h3><p class="mut" id="preminfo"></p><button class="btn gold" id="buyprem" style="margin-top:8px"></button></div>
+      <div class="card"><h3>🏆 Eng ko'p yulduzcha olganlar</h3><div id="leaders"></div></div>
+      <button class="btn sec" id="logout">Chiqish</button>
+    </section>
+  </main>
+  <nav class="bot">
+    <button data-go="tr" class="on"><b>🌐</b>Tarjima</button><button data-go="img"><b>📷</b>Rasm</button><button data-go="vid"><b>🎬</b>Video</button><button data-go="chat"><b>💬</b>Chat</button><button data-go="me"><b>👤</b>Profil</button>
+  </nav>
+</div>
+<script src="/common.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin panel</title><link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="top"><h1 id="t">Admin panel</h1><a class="btn sec sm" href="/">← Sayt</a></header>
+<main class="wrap">
+  <div id="deny" class="card hide">Admin sifatida kirish kerak. <a href="/">Asosiy sahifada</a> admin telefon raqami bilan kiring, so'ng qaytib keling.</div>
+  <div id="panel" class="hide">
+    <div class="grid" id="stats"></div>
+    <div class="card" style="margin-top:12px"><h3>⚙️ Sozlamalar</h3>
+      <div class="row" style="margin-top:8px"><div class="grow"><label class="mut">Ilova nomi</label><input type="text" id="s-app"></div><div class="grow"><label class="mut">Ilova egasi</label><input type="text" id="s-owner"></div></div>
+      <div class="row" style="margin-top:8px">
+        <div class="grow"><label class="mut">Bepul matn/kun</label><input type="number" id="s-t"></div><div class="grow"><label class="mut">Bepul rasm/kun</label><input type="number" id="s-i"></div><div class="grow"><label class="mut">Bepul video/kun</label><input type="number" id="s-v"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div class="grow"><label class="mut">Kunlik bepul yulduzcha</label><input type="number" id="s-fs"></div><div class="grow"><label class="mut">Premium uchun yulduzcha</label><input type="number" id="s-sp"></div><div class="grow"><label class="mut">Avto-premium (kun)</label><input type="number" id="s-ap"></div>
+      </div>
+      <div class="row" style="margin-top:8px"><div class="grow"><label class="mut">Premium narxi ($)</label><input type="number" id="s-pp" step="0.01"></div><div class="grow"><label class="mut">Premium muddati (kun)</label><input type="number" id="s-pd"></div></div>
+      <label class="mut" style="display:block;margin-top:8px">Yulduzcha paketlari (JSON: id, stars, priceUsd)</label><textarea id="s-packs" style="min-height:90px;font-family:monospace"></textarea>
+      <button class="btn" id="s-save" style="margin-top:8px">Saqlash</button>
+    </div>
+    <div class="card"><h3>👥 Foydalanuvchilar</h3><input type="text" id="uq" placeholder="Ism yoki telefon bo'yicha qidirish" style="margin:8px 0"><div style="overflow:auto"><table id="users"></table></div></div>
+    <div class="card"><h3>💳 So'nggi to'lovlar</h3><div style="overflow:auto"><table id="pays"></table></div></div>
+    <div class="card"><h3>💬 Chat moderatsiyasi</h3><div style="overflow:auto"><table id="msgs"></table></div></div>
+  </div>
+</main>
+<script src="/common.js"></script>
+<script>
+const A = (p, b) => api('/api/admin/' + p, b);
+async function init() {
+  try { await A('stats'); } catch { return $('#deny').classList.remove('hide'); }
+  $('#panel').classList.remove('hide'); loadStats(); loadUsers(); loadPays(); loadMsgs();
+}
+async function loadStats() {
+  const s = await A('stats'), c = s.settings; document.title = c.appName + ' — Admin'; $('#t').textContent = c.appName + ' — Admin';
+  $('#stats').innerHTML = [['Foydalanuvchilar', s.users], ['Premium', s.premium], ['Bloklangan', s.banned], ['Xabarlar', s.messages], ['Berilgan ⭐', s.stars], ['Daromad', '$' + s.revenueUsd]].map(([k, v]) => `<div class="stat"><b>${v}</b><span class="mut">${k}</span></div>`).join('');
+  $('#s-app').value = c.appName; $('#s-owner').value = c.ownerName; $('#s-t').value = c.freeDaily.text; $('#s-i').value = c.freeDaily.image; $('#s-v').value = c.freeDaily.video;
+  $('#s-fs').value = c.dailyFreeStars; $('#s-sp').value = c.starsForPremium; $('#s-ap').value = c.autoPremiumDays; $('#s-pp').value = c.premiumPriceUsd; $('#s-pd').value = c.premiumDays;
+  $('#s-packs').value = JSON.stringify(c.packs, null, 1);
+}
+$('#s-save').onclick = async () => {
+  let packs; try { packs = JSON.parse($('#s-packs').value); } catch { return toast('Paketlar JSON xato', 1); }
+  try {
+    await A('settings', { appName: $('#s-app').value, ownerName: $('#s-owner').value, freeDaily: { text: $('#s-t').value, image: $('#s-i').value, video: $('#s-v').value },
+      dailyFreeStars: $('#s-fs').value, starsForPremium: $('#s-sp').value, autoPremiumDays: $('#s-ap').value, premiumPriceUsd: $('#s-pp').value, premiumDays: $('#s-pd').value, packs });
+    toast('Saqlandi'); loadStats();
+  } catch (e) { toast(e.message, 1); }
+};
+async function loadUsers() {
+  const us = await A('users?q=' + encodeURIComponent($('#uq').value));
+  $('#users').innerHTML = '<tr><th>Ism</th><th>Telefon</th><th>⭐</th><th>Hamyon</th><th>Premium</th><th>Rol</th><th></th></tr>' + us.map(u => `<tr>
+    <td>${esc(u.name)} ${u.banned ? '<span class="err">(blok)</span>' : ''}</td><td>${esc(u.phone)}</td><td>${u.stars}</td><td>${u.starBalance}</td><td>${u.premiumUntil > Date.now() ? fmtDate(u.premiumUntil) : '—'}</td><td>${u.role}</td>
+    <td style="white-space:nowrap"><button class="btn sec sm" data-a="name" data-id="${u.id}">Nom</button> <button class="btn sec sm" data-a="prem" data-id="${u.id}">+Premium</button> <button class="btn sec sm" data-a="rev" data-id="${u.id}">−Premium</button> <button class="btn sec sm" data-a="star" data-id="${u.id}">+⭐</button> <button class="btn sec sm" data-a="role" data-id="${u.id}" data-r="${u.role}">${u.role === 'admin' ? 'Adminlikni olish' : 'Admin qilish'}</button> <button class="btn ${u.banned ? 'sec' : 'danger'} sm" data-a="ban" data-id="${u.id}" data-b="${u.banned ? 1 : 0}">${u.banned ? 'Blokdan chiqarish' : 'Bloklash'}</button></td></tr>`).join('');
+  $$('#users [data-a]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.id, a = b.dataset.a; let body = { id };
+    if (a === 'name') { const n = prompt('Yangi nom:'); if (!n) return; body.name = n; }
+    if (a === 'prem') { const d = prompt('Necha kun Premium?', '30'); if (!d) return; body.premiumDays = d; }
+    if (a === 'rev') body.revokePremium = true;
+    if (a === 'star') { const n = prompt('Nechta yulduzcha qo\'shish?', '10'); if (!n) return; body.addStars = n; }
+    if (a === 'role') body.role = b.dataset.r === 'admin' ? 'user' : 'admin';
+    if (a === 'ban') body.banned = b.dataset.b !== '1';
+    try { await A('user', body); toast('Bajarildi'); loadUsers(); loadStats(); } catch (e) { toast(e.message, 1); }
+  });
+}
+let t0; $('#uq').oninput = () => { clearTimeout(t0); t0 = setTimeout(loadUsers, 300); };
+async function loadPays() {
+  const p = await A('payments');
+  $('#pays').innerHTML = '<tr><th>Vaqt</th><th>Foydalanuvchi</th><th>Tur</th><th>Summa</th><th>Holat</th></tr>' + p.map(x => `<tr><td>${fmtDate(x.ts)}</td><td>${esc(x.userId)}</td><td>${esc(x.kind)} ${esc(x.packId || '')}</td><td>$${(x.amount || 0) / 100}</td><td>${esc(x.status)}</td></tr>`).join('');
+}
+async function loadMsgs() {
+  const m = await A('messages');
+  $('#msgs').innerHTML = '<tr><th>Vaqt</th><th>Xona</th><th>Kim</th><th>Xabar</th><th></th></tr>' + m.map(x => `<tr><td>${fmtDate(x.ts)}</td><td>${esc(x.room)}</td><td>${esc(x.name)}</td><td>${esc(x.text)}</td><td><button class="btn danger sm" data-d="${x.id}">O'chirish</button></td></tr>`).join('');
+  $$('#msgs [data-d]').forEach(b => b.onclick = async () => { await A('message/delete', { id: b.dataset.d }); loadMsgs(); });
+}
+init();
+</script>
+</body>
+</html>
