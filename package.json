@@ -1,0 +1,9 @@
+{
+  "name": "tarjimon",
+  "version": "1.0.0",
+  "description": "Tarjimon — barcha tillarga tarjima, audio, rasm, video, chat, yulduzchalar, premium va admin panel",
+  "author": "Fattoxov Abdulloh Toxirjon o'g'li",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
